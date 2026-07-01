@@ -1,0 +1,15 @@
+{
+  "name": "chatbot-backend",
+  "version": "1.0.0",
+  "description": "Free AI-powered backend for the customer support chatbot widget (uses Google Gemini free tier)",
+  "main": "backend-server.js",
+  "scripts": {
+    "start": "node backend-server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "cors": "^2.8.5",
+    "@google/generative-ai": "^0.21.0",
+    "dotenv": "^16.4.5"
+  }
+}
