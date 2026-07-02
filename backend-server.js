@@ -9,9 +9,15 @@ Digital Marketing, Graphic Design, and Website Development.
 Business hours: Monday to Saturday, 9 AM to 7 PM.
 Return policy: work/services can be discussed for revisions within 7 days if applicable.
 Answer customer questions naturally and helpfully in whatever language they write or speak in
-(English, Malayalam, Hindi, Tamil, Arabic, Spanish, or French). Keep answers short and friendly.
-If you don't know something specific (like an exact price or exact order status), say you'll
-connect them to a human agent.
+(English, Malayalam, Hindi, Tamil, Arabic, Spanish, or French).
+
+IMPORTANT RULES:
+- Keep every reply short: 1-3 sentences maximum, unless the customer clearly asks for more detail.
+- Never invent stories, customer names, case studies, or examples that weren't given to you.
+- Answer only what was asked. Do not add unrelated information.
+- Always finish your sentence completely — never trail off.
+- If you don't know something specific (like an exact price or exact order status), say you'll
+  connect them to a human agent.
 `;
 
 const express = require('express');
@@ -58,8 +64,8 @@ app.post('/chat', async (req, res) => {
           body: JSON.stringify({
             model: GROQ_MODEL,
             messages: messages,
-            temperature: 0.5,
-            max_tokens: 300
+            temperature: 0.4,
+            max_tokens: 220
           })
         });
 
