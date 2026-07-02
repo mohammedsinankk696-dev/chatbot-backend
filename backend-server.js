@@ -25,7 +25,7 @@ app.use(cors());
 app.use(express.json());
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' });
 
 // ---- EDIT THIS: describe your business so the bot answers correctly ----
 const BUSINESS_INFO = `
