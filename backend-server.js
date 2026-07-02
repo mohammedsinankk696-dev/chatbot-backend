@@ -54,13 +54,36 @@ app.post('/chat', async (req, res) => {
       (priorTurns ? '\n\nConversation so far:\n' + priorTurns : '') +
       '\n\nCustomer: ' + message + '\nSupport agent:';
 
-    const result = await model.generateContent(prompt);
-    const reply = result.response.text().trim();
+    var reply = null;
+    var lastError = null;
+    var maxAttempts = 3;
+
+    for (var attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        const result = await model.generateContent(prompt);
+        reply = result.response.text().trim();
+        break; // success, stop retrying
+      } catch (err) {
+        lastError = err;
+        var isOverloaded = err.status === 503 || (err.message && err.message.indexOf('503') !== -1);
+        if (isOverloaded && attempt < maxAttempts) {
+          // wait a bit longer each retry (1s, then 2s) before trying again
+          await new Promise(function (r) { setTimeout(r, attempt * 1000); });
+          continue;
+        }
+        throw err; // not overloaded, or out of retries — give up
+      }
+    }
 
     res.json({ reply: reply || "Sorry, could you rephrase that?" });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ reply: "Something went wrong. Please try again." });
+    var isOverloaded = err.status === 503 || (err.message && err.message.indexOf('503') !== -1);
+    res.json({
+      reply: isOverloaded
+        ? "Our AI assistant is a little busy right now. Please try again in a few seconds, or tap \"Talk to human\"."
+        : "Something went wrong. Please try again."
+    });
   }
 });
 
