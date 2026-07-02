@@ -32,7 +32,7 @@ app.use(cors());
 app.use(express.json());
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
-const GROQ_MODEL = 'llama-3.3-70b-versatile';
+const GROQ_MODEL = 'llama-3.1-8b-instant';
 
 app.post('/chat', async (req, res) => {
   try {
@@ -70,7 +70,7 @@ app.post('/chat', async (req, res) => {
             model: GROQ_MODEL,
             messages: messages,
             temperature: 0.4,
-            max_tokens: 350
+            max_tokens: 300
           })
         });
 
