@@ -28,7 +28,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' });
 
 // ---- EDIT THIS: describe your business so the bot answers correctly ----
-const BUSINESS_INFO = `
+const BUSINESS_INFO = Digital Marketing,Graphic Design ,Website Devolopment`
 You are a customer support assistant for "Your Business".
 Business hours: Monday to Saturday, 9 AM to 7 PM.
 Return policy: items can be returned within 7 days of delivery if unused
@@ -65,25 +65,35 @@ app.post('/chat', async (req, res) => {
         break; // success, stop retrying
       } catch (err) {
         lastError = err;
-        var isOverloaded = err.status === 503 || (err.message && err.message.indexOf('503') !== -1);
-        if (isOverloaded && attempt < maxAttempts) {
-          // wait a bit longer each retry (1s, then 2s) before trying again
-          await new Promise(function (r) { setTimeout(r, attempt * 1000); });
+        var status = err.status || (err.message && err.message.indexOf('503') !== -1 ? 503 :
+                      err.message && err.message.indexOf('429') !== -1 ? 429 : null);
+        var isRetryable = status === 503 || status === 429;
+
+        // If this is a daily-quota error (not just a per-minute rate limit),
+        // retrying won't help until tomorrow — stop immediately.
+        var isDailyQuota = err.message && err.message.indexOf('PerDay') !== -1;
+
+        if (isRetryable && !isDailyQuota && attempt < maxAttempts) {
+          // Google tells us how long to wait (e.g. "retryDelay":"21s").
+          // We cap our wait at 4 seconds so the customer isn't stuck waiting forever.
+          var suggestedWaitMatch = err.message && err.message.match(/retryDelay":"(\d+)s/);
+          var waitMs = suggestedWaitMatch ? Math.min(parseInt(suggestedWaitMatch[1], 10) * 1000, 4000) : attempt * 1000;
+          await new Promise(function (r) { setTimeout(r, waitMs); });
           continue;
         }
-        throw err; // not overloaded, or out of retries — give up
+        throw err; // not retryable, daily quota hit, or out of retries — give up
       }
     }
 
     res.json({ reply: reply || "Sorry, could you rephrase that?" });
   } catch (err) {
     console.error(err);
-    var isOverloaded = err.status === 503 || (err.message && err.message.indexOf('503') !== -1);
-    res.json({
-      reply: isOverloaded
-        ? "Our AI assistant is a little busy right now. Please try again in a few seconds, or tap \"Talk to human\"."
-        : "Something went wrong. Please try again."
-    });
+    var isDailyQuota = err.message && err.message.indexOf('PerDay') !== -1;
+    var isBusy = err.status === 503 || err.status === 429 ||
+                 (err.message && (err.message.indexOf('503') !== -1 || err.message.indexOf('429') !== -1));
+    // ai_unavailable tells the widget to quietly use its local FAQ answers
+    // instead of showing an apologetic error message to the customer.
+    res.json({ ai_unavailable: true });
   }
 });
 
