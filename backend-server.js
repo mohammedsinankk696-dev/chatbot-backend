@@ -28,8 +28,9 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' });
 
 // ---- EDIT THIS: describe your business so the bot answers correctly ----
-const BUSINESS_INFO = Digital Marketing,Graphic Design ,Website Devolopment`
-You are a customer support assistant for "Your Business".
+const BUSINESS_INFO = `
+You are a customer support assistant for a business offering Digital
+Marketing, Graphic Design, and Website Development services.
 Business hours: Monday to Saturday, 9 AM to 7 PM.
 Return policy: items can be returned within 7 days of delivery if unused
 and in original packaging.
